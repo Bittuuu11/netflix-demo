@@ -38,15 +38,20 @@ const Navbar = () => {
         }
     };
 
+    const handleSignout = () => {
+        // Clear session and redirect to login entry point
+        navigate('/');
+    };
+
     const navLinks = [
-        { to: '/', label: 'Home' },
+        { to: '/home', label: 'Home' },
         { to: '/movies', label: 'Movies' },
         { to: '/tv-shows', label: 'TV Shows' },
         { to: '/trending', label: 'Trending' },
     ];
 
     const isActive = (path) =>
-        path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+        path === '/home' ? location.pathname === '/home' : location.pathname.startsWith(path);
 
     return (
         <nav
@@ -58,7 +63,7 @@ const Navbar = () => {
 
                     {/* ── Logo ── */}
                     <Link
-                        to="/"
+                        to="/home"
                         className="flex-shrink-0 text-2xl md:text-3xl font-black tracking-widest text-netflix select-none"
                         style={{ letterSpacing: '0.12em', textShadow: '0 0 20px rgba(229,9,20,0.5)' }}
                     >
@@ -140,15 +145,13 @@ const Navbar = () => {
                             </svg>
                         </button>
 
-                        {/* Sign In Button */}
-                        {!['/login', '/signup'].includes(location.pathname) && (
-                            <Link
-                                to="/login"
-                                className="bg-netflix hover:bg-red-700 text-white text-xs md:text-sm font-semibold px-4 py-1.5 md:px-5 md:py-2 rounded transition-colors shadow-lg shadow-netflix/20 whitespace-nowrap"
-                            >
-                                Sign In
-                            </Link>
-                        )}
+                        {/* Sign Out Button */}
+                        <button
+                            onClick={handleSignout}
+                            className="bg-netflix/10 hover:bg-netflix text-white text-xs md:text-sm font-semibold px-4 py-1.5 md:px-5 md:py-2 rounded transition-all border border-netflix/50 hover:border-netflix shadow-lg hover:shadow-netflix/20 whitespace-nowrap"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
 

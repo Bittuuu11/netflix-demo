@@ -7,25 +7,26 @@ const db = require('./db');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+// ─── Immediate Port Binding (Kill 502) ─────────────────────────────────
+const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 [Deployment] Server is UP and listening on port ${PORT}`);
+    console.log(`📁 [Deployment] Serving from: ${path.join(__dirname, '../dist')}`);
 
-app.use(cors());
-app.use(express.json());
-
-// ─── Diagnostic Middleware ───────────────────────────────────────────────
-app.use((req, res, next) => {
-    console.log(`[Request] ${req.method} ${req.url}`);
-    next();
+    // Check if dist folder exists
+    if (!fs.existsSync(path.join(__dirname, '../dist'))) {
+        console.error('❌ [Deployment] ERROR: dist folder is missing!');
+    }
 });
 
 // TMDB Key Check
 if (!process.env.VITE_TMDB_API_KEY) {
-    console.warn('[Deployment] ⚠️ CRITICAL: VITE_TMDB_API_KEY is missing from environment!');
-} else {
-    console.log('[Deployment] ✅ TMDB API Key detected.');
+    console.warn('⚠️ [Deployment] VITE_TMDB_API_KEY missing - Using code fallback.');
 }
 
-// Serve static files from the 'dist' directory
+app.use(cors());
+app.use(express.json());
+
+// ─── Static Files ────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // ─── Verification Routes ──────────────────────────────────────────────────
@@ -109,24 +110,19 @@ app.get('*', (req, res) => {
     }
 });
 
-// ─── Initialize Database & Start Server ───────────────────────────────────
-const startServer = async () => {
+// ─── Initialize Database (Non-blocking) ───────────────────────────────────
+const initDatabase = async () => {
+    if (!process.env.DATABASE_URL) {
+        console.warn('⚠️ [Database] No URL found. Auth will be disabled.');
+        return;
+    }
     try {
-        console.log(`[Deployment] Initializing on Port: ${PORT}...`);
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`[Deployment] ✅ SUCCESS: Server is listening on port ${PORT}`);
-            console.log(`[Deployment] 📁 CWD: ${process.cwd()}`);
-            console.log(`[Deployment] 🔍 Dist Path: ${path.join(__dirname, '../dist')}`);
-        });
-
-        console.log('[Database] Connecting...');
-        if (process.env.DATABASE_URL) {
-            await db.query('SELECT 1');
-            console.log('[Database] ✅ Connected successfully');
-        }
+        console.log('⏳ [Database] Connecting to Aiven...');
+        await db.query('SELECT 1');
+        console.log('✅ [Database] Connected successfully.');
     } catch (err) {
-        console.error('[Deployment] ⚠️ Warning: DB connection failed or late initialization:', err.message);
+        console.error('❌ [Database] Connection failed:', err.message);
     }
 };
 
-startServer();
+initDatabase();

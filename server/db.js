@@ -8,14 +8,10 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: { rejectUnauthorized: false }
 });
 
-pool.on('connect', () => {
-    console.log('[Database] Connected successfully');
-});
+pool.on('error', (err) => console.error('Pool Error:', err.message));
 
 pool.on('error', (err) => {
     console.error('[Database] Unexpected error on idle client:', err.message);

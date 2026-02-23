@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: netflix-demo
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: DATABASE_URL
+        sync: false # Set this in the Render Dashboard
+      - key: VITE_TMDB_API_KEY
+        value: 1fd32146bdeb72d91d9101b47e7e5034
+      - key: VITE_TMDB_BASE_URL
+        value: https://api.themoviedb.org/3
+      - key: VITE_TMDB_IMAGE_BASE_URL
+        value: https://image.tmdb.org/t/p

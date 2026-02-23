@@ -91,6 +91,26 @@ app.get(/.*/, (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`[Server] Running on http://localhost:${PORT}`);
-});
+// ─── Initialize Database & Start Server ───────────────────────────────────
+const startServer = async () => {
+    try {
+        console.log('[Database] Checking schema...');
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log('[Database] Table "users" verified/created successfully');
+
+        app.listen(PORT, () => {
+            console.log(`[Server] Running on http://localhost:${PORT}`);
+        });
+    } catch (err) {
+        console.error('[Database] Failed to initialize schema or start server:', err);
+    }
+};
+
+startServer();

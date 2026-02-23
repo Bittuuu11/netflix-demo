@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
-require('dotenv').config({ path: '../.env' });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 if (!process.env.DATABASE_URL) {
     console.error('[Database] CRITICAL ERROR: DATABASE_URL environment variable is missing.');

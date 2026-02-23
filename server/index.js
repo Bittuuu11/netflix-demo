@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 const db = require('./db');
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -94,6 +94,13 @@ app.get(/.*/, (req, res) => {
 // ─── Initialize Database & Start Server ───────────────────────────────────
 const startServer = async () => {
     try {
+        console.log(`[Server] Detected Port: ${PORT}`);
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`[Server] Success! Running on port ${PORT}`);
+            console.log(`[Server] Access it locally at http://localhost:${PORT}`);
+            console.log(`[Server] Serving static files from: ${path.join(__dirname, '../dist')}`);
+        });
+
         console.log('[Database] Checking schema...');
         await db.query(`
             CREATE TABLE IF NOT EXISTS users (
@@ -104,13 +111,6 @@ const startServer = async () => {
             );
         `);
         console.log('[Database] Table "users" verified/created successfully');
-
-        console.log(`[Server] Detected Port: ${PORT}`);
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`[Server] Success! Running on port ${PORT}`);
-            console.log(`[Server] Access it locally at http://localhost:${PORT}`);
-            console.log(`[Server] Serving static files from: ${path.join(__dirname, '../dist')}`);
-        });
     } catch (err) {
         console.error('[Database] CRITICAL: Failed to initialize schema or start server:', err);
         process.exit(1); // Force fail so Render knows immediately

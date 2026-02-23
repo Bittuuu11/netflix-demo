@@ -15,9 +15,13 @@ app.use(express.json());
 // Serve static files from the 'dist' directory
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// ─── Verification Route ──────────────────────────────────────────────────
+// ─── Verification Routes ──────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Backend is running' });
+});
+
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
 });
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
@@ -82,11 +86,12 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // All other GET requests not handled before will return the React app
-app.get(/.*/, (req, res) => {
+app.get('*', (req, res) => {
     const indexPath = path.join(__dirname, '../dist', 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
+        console.error('[Deployment] ❌ ERROR: index.html not found at:', indexPath);
         res.status(404).send('<h1>404 - Frontend Not Found</h1><p>The frontend files (dist) are missing. Please ensure the build command "npm run build" was executed successfully.</p>');
     }
 });

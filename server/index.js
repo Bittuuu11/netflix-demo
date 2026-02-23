@@ -3,6 +3,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
+const db = require('./db');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
@@ -17,6 +18,16 @@ process.on('uncaughtException', (err) => {
 // ─── Health Checks (Absolute Priority) ────────────────────────────────────
 app.get('/healthz', (req, res) => res.status(200).send('OK'));
 app.get('/api/health', (req, res) => res.status(200).json({ status: 'OK' }));
+
+// Database Ping (for debugging)
+app.get('/api/db-ping', async (req, res) => {
+    try {
+        await db.query('SELECT 1');
+        res.json({ status: 'Connected', timestamp: new Date() });
+    } catch (err) {
+        res.status(500).json({ status: 'Error', message: err.message });
+    }
+});
 
 // ─── Standard Middleware ──────────────────────────────────────────────────
 app.use(cors());
@@ -112,12 +123,14 @@ app.listen(PORT, '0.0.0.0', () => {
 
 // ─── Database Initialization ─────────────────────────────────────────────
 async function initDatabase() {
-    if (!process.env.DATABASE_URL) return;
+    if (!process.env.DATABASE_URL) {
+        console.warn('⚠️ [Database] DATABASE_URL is missing.');
+        return;
+    }
     try {
-        const db = require('./db');
         await db.query('SELECT 1');
-        console.log('✅ [Database] Connected');
+        console.log('✅ [Database] Connected successfully');
     } catch (err) {
-        console.error('⚠️ [Database] Delayed connection:', err.message);
+        console.error('⚠️ [Database] Connection check failed:', err.message);
     }
 }

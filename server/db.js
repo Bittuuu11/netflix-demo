@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL.split('?')[0],
     ssl: { rejectUnauthorized: false }
 });
 

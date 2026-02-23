@@ -1,62 +1,29 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const path = require('path');
-const fs = require('fs');
-const db = require('./db');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-
 const app = express();
-const PORT = process.env.PORT || 10000; // Render default
+const PORT = process.env.PORT || 10000;
 
-// ─── Emergency Error Handlers ─────────────────────────────────────────────
+// ─── Emergency Error Handlers (Top Level) ──────────────────────────────────
 process.on('uncaughtException', (err) => {
     console.error(`💥 [CRITICAL] Uncaught Exception: ${err.message}`);
-    console.error(err.stack);
+    process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('💥 [CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-// ─── Essential Middleware ────────────────────────────────────────────────
-app.use(cors());
-app.use(express.json());
-
-// ─── Health Check (Highest Priority) ──────────────────────────────────────
+// ─── Health Checks (Absolute Priority) ────────────────────────────────────
 app.get('/healthz', (req, res) => res.status(200).send('OK'));
 app.get('/api/health', (req, res) => res.status(200).json({ status: 'OK' }));
 
-// ─── Startup Log ─────────────────────────────────────────────────────────
-console.log(`[Deployment] Initializing startup sequence on port ${PORT}...`);
+// ─── Standard Middleware ──────────────────────────────────────────────────
+app.use(cors());
+app.use(express.json());
 
-// ─── Static Files ────────────────────────────────────────────────────────
-const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
-
-// ─── Immediate Port Binding ──────────────────────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 [Deployment] Server is LIVE on port ${PORT}`);
-    console.log(`📁 [Deployment] Serving assets from: ${distPath}`);
-    if (!fs.existsSync(path.join(distPath, 'index.html'))) {
-        console.error('❌ [Deployment] ALERT: index.html is missing in dist!');
-    }
-});
-
-// Diagnostic Logger
+// ─── Diagnostic Logger ────────────────────────────────────────────────────
 app.use((req, res, next) => {
     console.log(`[Request] ${req.method} ${req.url}`);
     next();
 });
 
-// ─── Verification Routes ──────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Backend is running' });
-});
-
-app.get('/healthz', (req, res) => {
-    res.status(200).send('OK');
-});
+// ─── Static Files ────────────────────────────────────────────────────────
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
 
@@ -130,19 +97,20 @@ app.get('*', (req, res) => {
     }
 });
 
-// ─── Initialize Database (Non-blocking) ───────────────────────────────────
-const initDatabase = async () => {
-    if (!process.env.DATABASE_URL) {
-        console.warn('⚠️ [Database] No URL found. Auth will be disabled.');
-        return;
-    }
-    try {
-        console.log('⏳ [Database] Connecting to Aiven...');
-        await db.query('SELECT 1');
-        console.log('✅ [Database] Connected successfully.');
-    } catch (err) {
-        console.error('❌ [Database] Connection failed:', err.message);
-    }
-};
+// ─── Start Server ────────────────────────────────────────────────────────
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 [Deployment] Server is LIVE on port ${PORT}`);
+    initDatabase();
+});
 
-initDatabase();
+// ─── Database Initialization ─────────────────────────────────────────────
+async function initDatabase() {
+    if (!process.env.DATABASE_URL) return;
+    try {
+        const db = require('./db');
+        await db.query('SELECT 1');
+        console.log('✅ [Database] Connected');
+    } catch (err) {
+        console.error('⚠️ [Database] Delayed connection:', err.message);
+    }
+}

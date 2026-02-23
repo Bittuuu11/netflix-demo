@@ -102,7 +102,18 @@ const startServer = async () => {
     console.log(`[Deployment] Initializing on Port: ${PORT}...`);
     const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`[Deployment] ✅ SUCCESS: Server is listening on port ${PORT}`);
-        console.log(`[Deployment] 📁 Serving frontend from: ${path.join(__dirname, '../dist')}`);
+        const distPath = path.join(__dirname, '../dist');
+        console.log(`[Deployment] 📁 Serving frontend from: ${distPath}`);
+        try {
+            if (fs.existsSync(distPath)) {
+                const files = fs.readdirSync(distPath);
+                console.log(`[Deployment] 🔍 Dist folder contents: ${files.join(', ')}`);
+            } else {
+                console.error(`[Deployment] ❌ ERROR: Dist folder NOT FOUND at ${distPath}`);
+            }
+        } catch (e) {
+            console.error(`[Deployment] ❌ ERROR: Failed to read dist folder: ${e.message}`);
+        }
     });
 
     // 2. Attempt Database connection (Non-blocking for server startup)

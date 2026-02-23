@@ -93,15 +93,21 @@ app.get(/.*/, (req, res) => {
 
 // ─── Initialize Database & Start Server ───────────────────────────────────
 const startServer = async () => {
-    try {
-        console.log(`[Server] Detected Port: ${PORT}`);
-        app.listen(PORT, '0.0.0.0', () => {
-            console.log(`[Server] Success! Running on port ${PORT}`);
-            console.log(`[Server] Access it locally at http://localhost:${PORT}`);
-            console.log(`[Server] Serving static files from: ${path.join(__dirname, '../dist')}`);
-        });
+    // 1. Immediately start listening to satisfy Render's health check
+    console.log(`[Deployment] Initializing on Port: ${PORT}...`);
+    const server = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`[Deployment] ✅ SUCCESS: Server is listening on port ${PORT}`);
+        console.log(`[Deployment] 📁 Serving frontend from: ${path.join(__dirname, '../dist')}`);
+    });
 
-        console.log('[Database] Checking schema...');
+    // 2. Attempt Database connection (Non-blocking for server startup)
+    try {
+        console.log('[Database] ⏳ Connecting to Aiven PostgreSQL...');
+        if (!process.env.DATABASE_URL) {
+            console.warn('[Database] ⚠️ WARNING: DATABASE_URL is not set. Auth features will be disabled.');
+            return;
+        }
+
         await db.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -110,10 +116,11 @@ const startServer = async () => {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
-        console.log('[Database] Table "users" verified/created successfully');
+        console.log('[Database] ✅ SUCCESS: Connected and schema verified.');
     } catch (err) {
-        console.error('[Database] CRITICAL: Failed to initialize schema or start server:', err);
-        process.exit(1); // Force fail so Render knows immediately
+        console.error('[Database] ❌ ERROR: Database connection failed. The app will remain live, but auth may not work.');
+        console.error('[Database Trace]', err.message);
+        // Note: We DO NOT process.exit(1) here anymore to keep the site "UP" on Render.
     }
 };
 

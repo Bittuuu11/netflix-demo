@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const fs = require('fs');
 const db = require('./db');
 require('dotenv').config({ path: '../.env' });
 
@@ -81,8 +82,13 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // All other GET requests not handled before will return the React app
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist', 'index.html'));
+app.get(/.*/, (req, res) => {
+    const indexPath = path.join(__dirname, '../dist', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).send('<h1>404 - Frontend Not Found</h1><p>The frontend files (dist) are missing. Please ensure the build command "npm run build" was executed successfully.</p>');
+    }
 });
 
 app.listen(PORT, () => {

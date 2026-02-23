@@ -7,15 +7,22 @@ const db = require('./db');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
 // ─── Immediate Port Binding (Kill 502) ─────────────────────────────────
 const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 [Deployment] Server is UP and listening on port ${PORT}`);
     console.log(`📁 [Deployment] Serving from: ${path.join(__dirname, '../dist')}`);
 
-    // Check if dist folder exists
     if (!fs.existsSync(path.join(__dirname, '../dist'))) {
         console.error('❌ [Deployment] ERROR: dist folder is missing!');
     }
+});
+
+// Diagnostic Logger
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    next();
 });
 
 // TMDB Key Check

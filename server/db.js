@@ -13,10 +13,6 @@ const pool = new Pool({
 
 pool.on('error', (err) => console.error('Pool Error:', err.message));
 
-pool.on('error', (err) => {
-    console.error('[Database] Unexpected error on idle client:', err.message);
-});
-
 module.exports = {
     query: (text, params) => {
         console.log(`[Database Query] Executing: ${text.substring(0, 50)}...`);

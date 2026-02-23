@@ -2,7 +2,7 @@
  * App.jsx — Root component that sets up React Router routes.
  * Navbar is always rendered; pages are rendered inside the outlet.
  */
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import MoviesPage from './pages/MoviesPage';
@@ -24,21 +24,34 @@ const NotFound = () => (
     </main>
 );
 
+const AppContent = () => {
+    const location = useLocation();
+    const hideNavbar = ['/', '/login', '/signup'].includes(location.pathname);
+
+    return (
+        <>
+            {/* Show navbar except on auth pages for a cinematic feel */}
+            {!hideNavbar && <Navbar />}
+
+            <Routes>
+                {/* Start with login page as requested */}
+                <Route path="/" element={<LoginPage />} />
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/movies" element={<MoviesPage />} />
+                <Route path="/tv-shows" element={<TVShowsPage />} />
+                <Route path="/trending" element={<TrendingPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </>
+    );
+};
+
 const App = () => (
     <BrowserRouter>
-        {/* Fixed navbar — always visible */}
-        <Navbar />
-
-        <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/movies" element={<MoviesPage />} />
-            <Route path="/tv-shows" element={<TVShowsPage />} />
-            <Route path="/trending" element={<TrendingPage />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
     </BrowserRouter>
 );
 

@@ -15,6 +15,7 @@ export const PROFILE_SIZE = 'w185';
 
 const tmdbApi = axios.create({
     baseURL: BASE_URL,
+    timeout: 10000, // 10 second timeout to prevent perpetual "buffering"
     params: {
         api_key: API_KEY,
         language: 'en-US',

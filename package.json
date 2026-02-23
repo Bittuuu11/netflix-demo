@@ -10,7 +10,7 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "start": "cd server && node index.js",
+    "start": "node server/index.js",
     "postinstall": "cd server && npm install"
   },
   "dependencies": {

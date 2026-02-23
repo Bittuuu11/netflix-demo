@@ -105,9 +105,11 @@ const startServer = async () => {
         `);
         console.log('[Database] Table "users" verified/created successfully');
 
+        console.log(`[Server] Detected Port: ${PORT}`);
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`[Server] Success! Running on port ${PORT}`);
             console.log(`[Server] Access it locally at http://localhost:${PORT}`);
+            console.log(`[Server] Serving static files from: ${path.join(__dirname, '../dist')}`);
         });
     } catch (err) {
         console.error('[Database] CRITICAL: Failed to initialize schema or start server:', err);

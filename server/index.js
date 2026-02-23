@@ -12,6 +12,19 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// ─── Diagnostic Middleware ───────────────────────────────────────────────
+app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    next();
+});
+
+// TMDB Key Check
+if (!process.env.VITE_TMDB_API_KEY) {
+    console.warn('[Deployment] ⚠️ CRITICAL: VITE_TMDB_API_KEY is missing from environment!');
+} else {
+    console.log('[Deployment] ✅ TMDB API Key detected.');
+}
+
 // Serve static files from the 'dist' directory
 app.use(express.static(path.join(__dirname, '../dist')));
 

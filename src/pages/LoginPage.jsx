@@ -29,6 +29,7 @@ const LoginPage = () => {
                 setBackdrops(images.slice(0, 10)); // Take top 10 trending images
             } catch (err) {
                 console.error('Failed to fetch backdrops:', err);
+                setError('⚠️ Movie database connection failed. Please ensure TMDB API Key is configured on Render.');
             }
         };
         fetchBackdrops();

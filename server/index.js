@@ -6,16 +6,39 @@ const fs = require('fs');
 const db = require('./db');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000; // Render default
 
-// ─── Immediate Port Binding (Kill 502) ─────────────────────────────────
-const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 [Deployment] Server is UP and listening on port ${PORT}`);
-    console.log(`📁 [Deployment] Serving from: ${path.join(__dirname, '../dist')}`);
+// ─── Emergency Error Handlers ─────────────────────────────────────────────
+process.on('uncaughtException', (err) => {
+    console.error(`💥 [CRITICAL] Uncaught Exception: ${err.message}`);
+    console.error(err.stack);
+});
 
-    if (!fs.existsSync(path.join(__dirname, '../dist'))) {
-        console.error('❌ [Deployment] ERROR: dist folder is missing!');
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 [CRITICAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// ─── Essential Middleware ────────────────────────────────────────────────
+app.use(cors());
+app.use(express.json());
+
+// ─── Health Check (Highest Priority) ──────────────────────────────────────
+app.get('/healthz', (req, res) => res.status(200).send('OK'));
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'OK' }));
+
+// ─── Startup Log ─────────────────────────────────────────────────────────
+console.log(`[Deployment] Initializing startup sequence on port ${PORT}...`);
+
+// ─── Static Files ────────────────────────────────────────────────────────
+const distPath = path.join(__dirname, '../dist');
+app.use(express.static(distPath));
+
+// ─── Immediate Port Binding ──────────────────────────────────────────────
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 [Deployment] Server is LIVE on port ${PORT}`);
+    console.log(`📁 [Deployment] Serving assets from: ${distPath}`);
+    if (!fs.existsSync(path.join(distPath, 'index.html'))) {
+        console.error('❌ [Deployment] ALERT: index.html is missing in dist!');
     }
 });
 
@@ -24,17 +47,6 @@ app.use((req, res, next) => {
     console.log(`[Request] ${req.method} ${req.url}`);
     next();
 });
-
-// TMDB Key Check
-if (!process.env.VITE_TMDB_API_KEY) {
-    console.warn('⚠️ [Deployment] VITE_TMDB_API_KEY missing - Using code fallback.');
-}
-
-app.use(cors());
-app.use(express.json());
-
-// ─── Static Files ────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, '../dist')));
 
 // ─── Verification Routes ──────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

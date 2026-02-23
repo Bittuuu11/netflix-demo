@@ -49,10 +49,42 @@ const AppContent = () => {
     );
 };
 
+import { Component } from 'react';
+
+// Error Boundary to prevent blank screens
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div style={{ backgroundColor: '#141414', color: 'white', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '20px' }}>
+                    <h1 style={{ color: '#e50914', fontSize: '3rem' }}>Oops!</h1>
+                    <p style={{ fontSize: '1.2rem', marginBottom: '20px' }}>Something went wrong while loading the app.</p>
+                    <pre style={{ backgroundColor: '#222', padding: '15px', borderRadius: '5px', fontSize: '0.8rem', maxWidth: '100%', overflowX: 'auto' }}>
+                        {this.state.error?.toString()}
+                    </pre>
+                    <button onClick={() => window.location.reload()} style={{ marginTop: '20px', backgroundColor: '#e50914', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer' }}>
+                        Refresh Page
+                    </button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 const App = () => (
-    <BrowserRouter>
-        <AppContent />
-    </BrowserRouter>
+    <ErrorBoundary>
+        <BrowserRouter>
+            <AppContent />
+        </BrowserRouter>
+    </ErrorBoundary>
 );
 
 export default App;

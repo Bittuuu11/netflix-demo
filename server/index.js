@@ -111,45 +111,21 @@ app.get('*', (req, res) => {
 
 // ─── Initialize Database & Start Server ───────────────────────────────────
 const startServer = async () => {
-    // 1. Immediately start listening to satisfy Render's health check
-    console.log(`[Deployment] Initializing on Port: ${PORT}...`);
-    const server = app.listen(PORT, '0.0.0.0', () => {
-        console.log(`[Deployment] ✅ SUCCESS: Server is listening on port ${PORT}`);
-        const distPath = path.join(__dirname, '../dist');
-        console.log(`[Deployment] 📁 Serving frontend from: ${distPath}`);
-        try {
-            if (fs.existsSync(distPath)) {
-                const files = fs.readdirSync(distPath);
-                console.log(`[Deployment] 🔍 Dist folder contents: ${files.join(', ')}`);
-            } else {
-                console.error(`[Deployment] ❌ ERROR: Dist folder NOT FOUND at ${distPath}`);
-            }
-        } catch (e) {
-            console.error(`[Deployment] ❌ ERROR: Failed to read dist folder: ${e.message}`);
-        }
-    });
-
-    // 2. Attempt Database connection (Non-blocking for server startup)
     try {
-        console.log('[Database] ⏳ Connecting to Aiven PostgreSQL...');
-        if (!process.env.DATABASE_URL) {
-            console.warn('[Database] ⚠️ WARNING: DATABASE_URL is not set. Auth features will be disabled.');
-            return;
-        }
+        console.log(`[Deployment] Initializing on Port: ${PORT}...`);
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`[Deployment] ✅ SUCCESS: Server is listening on port ${PORT}`);
+            console.log(`[Deployment] 📁 CWD: ${process.cwd()}`);
+            console.log(`[Deployment] 🔍 Dist Path: ${path.join(__dirname, '../dist')}`);
+        });
 
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        console.log('[Database] ✅ SUCCESS: Connected and schema verified.');
+        console.log('[Database] Connecting...');
+        if (process.env.DATABASE_URL) {
+            await db.query('SELECT 1');
+            console.log('[Database] ✅ Connected successfully');
+        }
     } catch (err) {
-        console.error('[Database] ❌ ERROR: Database connection failed. The app will remain live, but auth may not work.');
-        console.error('[Database Trace]', err.message);
-        // Note: We DO NOT process.exit(1) here anymore to keep the site "UP" on Render.
+        console.error('[Deployment] ⚠️ Warning: DB connection failed or late initialization:', err.message);
     }
 };
 

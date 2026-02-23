@@ -6,7 +6,6 @@ import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_TMDB_BASE_URL || 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY || '1fd32146bdeb72d91d9101b47e7e5034';
- || '1fd32146bdeb72d91d9101b47e7e5034';
 
 // Base image URL constants (used throughout the app)
 export const IMG_BASE_URL = 'https://image.tmdb.org/t/p';

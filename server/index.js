@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
+const path = require('path');
 const db = require('./db');
 require('dotenv').config({ path: '../.env' });
 
@@ -9,6 +10,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the 'dist' directory
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // ─── Verification Route ──────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -74,6 +78,11 @@ app.post('/api/auth/login', async (req, res) => {
         console.error('[Auth Error]', err.message);
         res.status(500).json({ status_message: 'Internal server error' });
     }
+});
+
+// All other GET requests not handled before will return the React app
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
